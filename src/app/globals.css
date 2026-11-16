@@ -1,0 +1,261 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ================= Design tokens: near-black, warm cream, warm grey. Few colours, used sparingly. ================= */
+@theme {
+  --color-asphalt-900: #111111; /* page field */
+  --color-asphalt-800: #181818; /* panels */
+  --color-asphalt-700: #222222; /* hover, wells */
+  --color-kerb: #2e2e2e; /* hairlines and rules */
+  --color-chalk: #f3efe6; /* warm ivory: primary text */
+  --color-chalk-dim: #9c968c; /* labels and units (6.2:1 on the page, 5.3:1 on asphalt-700) */
+  --color-ink: #141414; /* type on light and orange surfaces */
+
+  /* Ranking metals. Gold is the dominant accent; silver and bronze secondary; slate stays quiet. */
+  --color-gold: #d6ad55;
+  --color-silver: #aeb5bd;
+  --color-bronze: #b87952;
+  --color-slate: #6f767e;
+
+  --color-signal: #e10600; /* live dot only */
+  --color-fire: #ff8226; /* P1 row */
+  --color-improved: #3ddc84; /* qualified, goal met */
+  --color-holding: #ffc300; /* no change */
+  --color-fastest: #a020f0;
+
+  --ease-race: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@theme inline {
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-face), "Arial Narrow", sans-serif;
+  --font-serif: var(--font-serif-face), Georgia, serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+}
+
+/* shadcn tokens mapped onto the palette (dark only). Radius rule: 0 on panels and rows, 2px max on chips. */
+:root {
+  color-scheme: dark;
+  --background: #111111;
+  --foreground: #f3efe6;
+  --card: #181818;
+  --card-foreground: #f3efe6;
+  --popover: #181818;
+  --popover-foreground: #f3efe6;
+  --primary: #f3efe6;
+  --primary-foreground: #141414;
+  --secondary: #222222;
+  --secondary-foreground: #f3efe6;
+  --muted: #222222;
+  --muted-foreground: #9c968c;
+  --accent: #222222;
+  --accent-foreground: #f3efe6;
+  --destructive: #ff5a4f;
+  --border: #2e2e2e;
+  --input: #2e2e2e;
+  --ring: #f3efe6;
+  --radius: 0px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-asphalt-900 text-chalk;
+  }
+  ::selection {
+    background: var(--color-chalk);
+    color: var(--color-asphalt-900);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-chalk);
+    outline-offset: 2px;
+  }
+
+  /* Scrollbars in the page's own palette: narrow, dark, no arrows. Firefox first, then WebKit. */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: #3a3a3a transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-chalk-dim);
+  }
+  /* the square where the two bars meet, which otherwise shows the browser's own grey */
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* Display voice: Big Shoulders at display size, heavy, tall. Section titles and big numerals. */
+  .wide,
+  .display {
+    font-family: var(--font-display-face), "Arial Narrow", sans-serif;
+    font-variation-settings: "opsz" 72;
+    font-weight: 900;
+    letter-spacing: -0.005em;
+    text-transform: uppercase;
+  }
+  .condensed {
+    font-family: var(--font-display-face), "Arial Narrow", sans-serif;
+    font-variation-settings: "opsz" 72;
+  }
+  /* Accent voice: italic serif. */
+  .serif {
+    font-family: var(--font-serif-face), Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+  }
+  /* Every number: tabular so nothing shifts as values update. */
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* Fine film grain. */
+  .grain {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  .checker {
+    background: conic-gradient(var(--color-chalk) 25%, #000 0 50%, var(--color-chalk) 0 75%, #000 0) 0 0 / var(--sq, 8px) var(--sq, 8px);
+  }
+  /* Start light, lit. */
+  .led-on {
+    background: radial-gradient(circle at 50% 45%, #ffd0d4 0 12%, #ff3a33 30%, var(--color-signal) 55%, #8f0400 100%);
+    box-shadow: 0 0 10px 1px rgb(225 6 0 / 0.85), 0 0 34px 6px rgb(225 6 0 / 0.35);
+  }
+}
+
+/* While the intro plays, intro elements start hidden (set by an inline script only when motion is allowed). */
+.intro [data-intro] {
+  visibility: hidden;
+}
+
+/* Loader: hidden unless the inline script marked this visit for the start lights (once per session). */
+.loader {
+  display: none;
+}
+.lights .loader {
+  display: flex;
+}
+
+/* Podium: a slow light sweep across each step. */
+@keyframes step-shine {
+  0%,
+  55% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+.step-shine {
+  animation: step-shine 6s ease-out infinite;
+}
+
+/* Track centre line flowing toward the viewer. */
+@keyframes centre-flow {
+  to {
+    stroke-dashoffset: -96;
+  }
+}
+[data-centre] {
+  animation: centre-flow 1.6s linear infinite;
+}
+
+/* P1 flames. */
+@keyframes flame-flicker {
+  0%,
+  100% {
+    transform: scaleY(1) skewX(0deg);
+  }
+  25% {
+    transform: scaleY(1.08) skewX(-2deg);
+  }
+  50% {
+    transform: scaleY(0.94) skewX(2deg);
+  }
+  75% {
+    transform: scaleY(1.05) skewX(-1deg);
+  }
+}
+.flame {
+  transform-origin: 50% 100%;
+  animation: flame-flicker var(--d, 0.9s) ease-in-out infinite;
+}
+@keyframes ember-rise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-48px) scale(0.3);
+    opacity: 0;
+  }
+}
+.ember {
+  animation: ember-rise var(--d, 1.8s) ease-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-shine,
+  .ember {
+    display: none;
+  }
+  .flame,
+  [data-centre] {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

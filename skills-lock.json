@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "skills": {
+    "threejs-animation": {
+      "source": "cloudai-x/threejs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/threejs-animation/SKILL.md",
+      "computedHash": "cb27ed7b9ef4eb1f1f45a616b776f1f3390edd9ea17f9ddbde26b4f621f2d2ae"
+    },
+    "ui-taste": {
+      "source": "uizze.sh",
+      "sourceType": "well-known",
+      "computedHash": "9a37107c51b6bf6e3bdc2675d559094619b1b03092f8466c32ffc8e0cb9c1d4a"
+    }
+  }
+}

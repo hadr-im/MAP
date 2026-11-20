@@ -10,14 +10,20 @@ import { Hero } from "./hero";
 import { StandingsTable } from "./standings-table";
 import { TopTen } from "./top-ten";
 import { RACES } from "./races";
+import { LAMP_TONES, StartCount, StartLights } from "./start-lights";
 import { TrackSeparator } from "./track-separator";
 import { useStandings } from "./use-standings";
 
 gsap.registerPlugin(useGSAP);
 
-const LIGHTS_KEY = "map-lights";
-
 const { one: RACE_ONE, two: RACE_TWO, three: RACE_THREE } = RACES;
+
+/**
+ * What this page load asked for, read once from the classes the inline script set.
+ * In development React mounts, unmounts and remounts, which kills the first run of the sequence; the
+ * classes are gone by then, so without this the intro would show as a flash and never play again.
+ */
+let introRequest: { intro: boolean; lights: boolean } | null = null;
 
 export function LeaderboardView({ data: initial }: { data: PublicLeaderboard }) {
   const root = useRef<HTMLDivElement>(null);
@@ -28,8 +34,8 @@ export function LeaderboardView({ data: initial }: { data: PublicLeaderboard }) 
     () => {
       const q = gsap.utils.selector(root);
       const html = document.documentElement;
-      const playIntro = html.classList.contains("intro");
-      const playLights = html.classList.contains("lights");
+      introRequest ??= { intro: html.classList.contains("intro"), lights: html.classList.contains("lights") };
+      const { intro: playIntro, lights: playLights } = introRequest;
       delete html.dataset.podium;
       const podiumReady = () => void (html.dataset.podium = "ready"); // trophies grow in after this
       const mm = gsap.matchMedia();
@@ -61,30 +67,84 @@ export function LeaderboardView({ data: initial }: { data: PublicLeaderboard }) 
 
         let cleanup = () => {};
         if (playLights) {
-          // Five lights 180ms apart, random hold, lights out. Max 2.2s; any input skips.
+          /*
+           * The start procedure, about 2.7s: four panels draw in, each pair strikes red in turn, a
+           * held beat, then the reds clear and the last panel comes up green — go. The screen lifts
+           * away as the hero's entrance begins underneath. Any input skips to the "out" label.
+           */
           const loader = q("[data-loader]")[0];
-          const lamps = q("[data-loader] [data-lamp]");
+          const panels = q("[data-panel]");
+          const bases = q("[data-base]");
+          const skipHint = q("[data-skip]")[0];
+          const pairs = q("[data-pair]");
+          const counter = q("[data-count]")[0];
+
           gsap.set(loader, { display: "flex" });
-          const hold = gsap.utils.random(0.6, 1.13);
-          const lights = gsap.timeline();
+
+          /** The green pair lands here every time; the reds are already lit and stay lit. */
+          const GREEN_AT = 2;
+          const BETWEEN = 0.32;
+          const FIRST_LIGHT = GREEN_AT - (LAMP_TONES.length - 1) * BETWEEN;
+          const lights = gsap.timeline({ defaults: { ease: "power2.out" } });
           lights
-            .to(lamps, { autoAlpha: 1, duration: 0.01, stagger: 0.18, ease: "none" }, 0.1)
-            .addLabel("out", `+=${hold}`)
-            .to(lamps, { autoAlpha: 0, duration: 0.01, ease: "none" }, "out")
-            .add(() => {
-              try {
-                sessionStorage.setItem(LIGHTS_KEY, "1");
-              } catch {}
-              entrance.play();
-            }, "out")
-            .to(loader, { autoAlpha: 0, duration: 0.25, ease: "power2.out" }, "out")
+            .fromTo(panels, { yPercent: -14, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 0.55, stagger: 0.06, ease: "expo.out" }, 0)
+            .fromTo(bases, { scaleX: 0, autoAlpha: 0 }, { scaleX: 1, autoAlpha: 1, duration: 0.45, stagger: 0.06 }, 0.12)
+            .to(skipHint, { autoAlpha: 1, duration: 0.4 }, 0.6)
+            // the count runs from the first segment filling to the green pair striking
+            .fromTo(
+              { v: 0 },
+              { v: 0 },
+              {
+                v: 100,
+                duration: GREEN_AT - (FIRST_LIGHT - BETWEEN),
+                ease: "none",
+                onUpdate() {
+                  counter.textContent = String(Math.round(this.targets()[0].v));
+                },
+              },
+              FIRST_LIGHT - BETWEEN,
+            );
+
+          /*
+           * One pair at a time. A real lamp has no wind-up: it is simply on, over-bright for an
+           * instant while the filament settles, and the housing around it catches the colour. So the
+           * fill snaps on in two frames, a white core burns off over a fifth of a second, and the
+           * halo overshoots before easing back to its steady level. Nothing bounces or scales up.
+           */
+          pairs.forEach((pair, i) => {
+            const at = FIRST_LIGHT + i * BETWEEN;
+            const lamp = pair.querySelectorAll("[data-lamp]");
+            const hot = pair.querySelectorAll("[data-hot]");
+            const halo = pair.querySelectorAll("[data-halo]");
+            lights
+              .to(pair.querySelector("[data-fill]"), { scaleX: 1, duration: BETWEEN, ease: "none" }, at - BETWEEN)
+              .to(lamp, { autoAlpha: 1, duration: 0.03, ease: "none" }, at)
+              .fromTo(hot, { autoAlpha: 0.95 }, { autoAlpha: 0, duration: 0.22, ease: "power2.out" }, at)
+              .fromTo(halo, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.09, ease: "none" }, at)
+              .to(halo, { autoAlpha: 0.72, duration: 0.35, ease: "power2.out" }, at + 0.09)
+              .fromTo(pair.querySelector("[data-tint]"), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.25 }, at);
+          });
+
+          lights
+            .addLabel("out", GREEN_AT)
+            // go: the whole grid turns green together — every lamp, every halo, every bar segment
+            .to(q("[data-go]"), { autoAlpha: 1, duration: 0.3, stagger: 0.04 }, "out+=0.18")
+            .to(q("[data-go-halo]"), { autoAlpha: 0.72, duration: 0.3, stagger: 0.04 }, "out+=0.18")
+            .to(q("[data-go-tint]"), { autoAlpha: 1, duration: 0.3, stagger: 0.04 }, "out+=0.18")
+            .to([...q("[data-halo]"), ...q("[data-tint]")], { autoAlpha: 0, duration: 0.3 }, "out+=0.18")
+            .to(q("[data-done]"), { autoAlpha: 1, duration: 0.3, stagger: 0.04 }, "out+=0.18")
+            .to(skipHint, { autoAlpha: 0, duration: 0.2 }, "out+=0.18")
+            // and the screen lifts, flat, with no fade
+            .to(loader, { yPercent: -100, duration: 0.75, ease: "power4.inOut" }, "out+=0.62")
+            .add(() => entrance.play(), "out+=0.79")
             .set(loader, { display: "none" });
+
           const skip = () => {
             if (lights.time() < lights.labels.out) lights.seek("out");
           };
           const inputs = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
           inputs.forEach((e) => window.addEventListener(e, skip, { passive: true }));
-          const safety = window.setTimeout(() => lights.progress(1), 3000);
+          const safety = window.setTimeout(() => lights.progress(1), 4500);
           cleanup = () => {
             window.clearTimeout(safety);
             inputs.forEach((e) => window.removeEventListener(e, skip));
@@ -134,17 +194,18 @@ export function LeaderboardView({ data: initial }: { data: PublicLeaderboard }) 
 
 /* ================= Loader: F1 start lights ================= */
 
+/**
+ * The start sequence, over the page. It renders the same resting frame the page waits on, then the
+ * timeline lights it: each pair strikes and stays on, the last one green. The lamps light the way
+ * real ones do — instantly, with a hot first instant that settles — and everything that moves is a
+ * transform or an opacity, so it stays smooth on a mid-range phone.
+ */
 function Loader() {
   return (
-    <div data-loader className="loader fixed inset-0 z-50 flex-col items-center justify-center gap-8 bg-asphalt-900" role="presentation">
-      <div className="flex gap-3 rounded-[2px] bg-black px-4 py-3 sm:gap-5 sm:px-6 sm:py-4" aria-hidden>
-        {Array.from({ length: 5 }, (_, i) => (
-          <span key={i} className="relative size-10 rounded-full bg-asphalt-700 shadow-[inset_0_2px_6px_rgb(0_0_0/0.9)] sm:size-14">
-            <span data-lamp className="led-on invisible absolute inset-0 rounded-full opacity-0" />
-          </span>
-        ))}
-      </div>
-      <p className="text-sm text-chalk-dim">Tap anywhere to skip</p>
+    <div data-loader className="loader fixed inset-0 z-50 flex-col items-center justify-center gap-9 overflow-hidden bg-asphalt-900 px-3 will-change-transform" role="presentation">
+      <StartLights />
+      <StartCount />
+      <p data-skip className="text-[11px] tracking-[0.25em] text-chalk-dim uppercase opacity-0">Tap to skip</p>
     </div>
   );
 }

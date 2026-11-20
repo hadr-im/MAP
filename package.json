@@ -10,7 +10,8 @@
     "test": "vitest run",
     "sheets:check": "node scripts/check-google.mjs",
     "sheets:setup": "tsx --conditions=react-server scripts/setup-sheets.ts",
-    "sheets:preview": "tsx --conditions=react-server scripts/preview-leaderboard.ts"
+    "sheets:preview": "tsx --conditions=react-server scripts/preview-leaderboard.ts",
+    "sheets:aliases": "tsx --conditions=react-server scripts/add-aliases.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

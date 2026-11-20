@@ -10,6 +10,12 @@ import { pose, type CarSpec, type Course } from "./race-sim";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
+/**
+ * A phone's address bar hides and shows as you scroll, which resizes the viewport and makes
+ * ScrollTrigger re-measure mid-scroll. Ignoring that resize keeps the races running smoothly.
+ */
+ScrollTrigger.config({ ignoreMobileResize: true });
+
 export type { CarSpec };
 
 /**
@@ -61,6 +67,8 @@ export function TrackSeparator({ cars, reverse = false, className }: { cars: Car
             start: "top bottom",
             end: "bottom top",
             scrub: 1.1, // the field glides a moment behind the scroll, like momentum
+            // the band's place on the page moves as fonts land and the hero settles, so measure again
+            invalidateOnRefresh: true,
             onRefresh: () => render(race.p),
             onUpdate: (self) => {
               const speed = Math.min(1, Math.abs(self.getVelocity()) / 2400);
@@ -70,6 +78,13 @@ export function TrackSeparator({ cars, reverse = false, className }: { cars: Car
         });
       });
 
+      // Fonts and the hero's own height settle after this effect runs; without a re-measure the
+      // band's start and end can be computed from a page that no longer exists, and the cars sit still.
+      const settle = () => ScrollTrigger.refresh();
+      if (document.fonts?.status === "loaded") requestAnimationFrame(settle);
+      else void document.fonts?.ready.then(settle);
+      window.addEventListener("load", settle);
+
       mm.add("(prefers-reduced-motion: reduce)", () => {
         const park = () => render(0.32);
         park();
@@ -77,6 +92,8 @@ export function TrackSeparator({ cars, reverse = false, className }: { cars: Car
         window.addEventListener("resize", park);
         return () => window.removeEventListener("resize", park);
       });
+
+      return () => window.removeEventListener("load", settle);
     },
     { scope: band, dependencies: [cars, reverse], revertOnUpdate: true },
   );

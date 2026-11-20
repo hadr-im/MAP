@@ -280,7 +280,7 @@ function EmptyPodium() {
 
       {/* one line, in the subtitle's racing face, sized so it never wraps */}
       <p
-        className="mt-10 mb-10 text-center text-[clamp(0.46rem,1.35vw,1rem)] whitespace-nowrap text-chalk/70 uppercase sm:mt-12 sm:mb-16"
+        className="mt-10 mb-10 text-center text-[clamp(0.62rem,1.35vw,1rem)] text-balance text-chalk/70 uppercase sm:mt-12 sm:mb-16 sm:whitespace-nowrap"
         style={{ fontFamily: "var(--font-wide-face)" }}
       >
         Podium&apos;s gathering dust. Wipe it down and claim your prize.

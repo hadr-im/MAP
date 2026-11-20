@@ -160,11 +160,6 @@
   .checker {
     background: conic-gradient(var(--color-chalk) 25%, #000 0 50%, var(--color-chalk) 0 75%, #000 0) 0 0 / var(--sq, 8px) var(--sq, 8px);
   }
-  /* Start light, lit. */
-  .led-on {
-    background: radial-gradient(circle at 50% 45%, #ffd0d4 0 12%, #ff3a33 30%, var(--color-signal) 55%, #8f0400 100%);
-    box-shadow: 0 0 10px 1px rgb(225 6 0 / 0.85), 0 0 34px 6px rgb(225 6 0 / 0.35);
-  }
 }
 
 /* While the intro plays, intro elements start hidden (set by an inline script only when motion is allowed). */
@@ -172,7 +167,7 @@
   visibility: hidden;
 }
 
-/* Loader: hidden unless the inline script marked this visit for the start lights (once per session). */
+/* Loader: hidden unless the inline script marked this load for the start lights. */
 .loader {
   display: none;
 }

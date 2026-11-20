@@ -53,11 +53,11 @@ export const viewport: Viewport = {
 
 /**
  * Before first paint on the home page (never for reduced motion):
- *  - "intro" hides hero elements so their entrance can play on every visit without a flash;
- *  - "lights" shows the start-lights loader, once per session.
- * Both are removed after 4s as a safety net if scripts fail (the loader itself never exceeds 2.2s).
+ *  - "intro" hides hero elements so their entrance can play without a flash;
+ *  - "lights" shows the start-lights loader. Both run on every load, including a refresh.
+ * They are removed after 6s as a safety net if scripts fail (the sequence itself takes about 2.7s).
  */
-const introScript = `try{if(location.pathname==='/'&&!matchMedia('(prefers-reduced-motion: reduce)').matches){var d=document.documentElement;d.classList.add('intro');if(!sessionStorage.getItem('map-lights'))d.classList.add('lights');setTimeout(function(){d.classList.remove('intro','lights')},4000)}}catch(e){}`;
+const introScript = `try{if(location.pathname==='/'&&!matchMedia('(prefers-reduced-motion: reduce)').matches){var d=document.documentElement;d.classList.add('intro','lights');setTimeout(function(){d.classList.remove('intro','lights')},6000)}}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

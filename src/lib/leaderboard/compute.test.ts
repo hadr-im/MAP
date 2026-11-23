@@ -28,12 +28,12 @@ describe("buildLeaderboard", () => {
       ...rec("Amna Riahi", "revenue", 1, "2026-10-01", 3000), // 150%
       ...rec("Doua Mani", "signups", 15),
       ...rec("Doua Mani", "referrals", 5), // 125%
-      ...rec("Helmy Chelly", "signups", 10), // not enough signups
-      ...rec("Helmy Chelly", "approvals", 9),
+      ...rec("Helmy Chelly", "signups", 10), // signups carry no goal now
+      ...rec("Helmy Chelly", "approvals", 3), // one short of OGTa's 4
     ];
     const r = buildLeaderboard({ config, members, records, aliases: [] });
     const ranked = r.standings.filter((s) => s.eligible).map((s) => [s.name, s.rank, Math.round(s.score * 100)]);
-    // Emna and Aymen tie on 150%; revenue then points break the tie, but ranks stay distinct only when they differ.
+    // Emna and Rami tie on 150%; revenue then points break the tie, but ranks stay distinct only when they differ.
     expect(ranked).toEqual([
       ["Emna Riahi", 1, 150],
       ["Rami Trabelsi", 2, 150],
@@ -74,14 +74,14 @@ describe("buildLeaderboard", () => {
   });
 
   it("qualifies an OC member through their own department when the OC goals are missed", () => {
-    // Emna is OC in OGTa: no revenue, so the OC route fails, but OGX's 30 signups and 4 approvals are met.
-    const records = [...rec("Emna Riahi", "signups", 30), ...rec("Emna Riahi", "approvals", 4)];
+    // Emna is OC in OGTa: no revenue, so the OC route fails, but OGTa's 4 approvals are met.
+    const records = [...rec("Emna Riahi", "approvals", 4)];
     const emna = buildLeaderboard({ config, members, records, aliases: [] }).standings.find((s) => s.name === "Emna Riahi")!;
-    expect(emna).toMatchObject({ eligible: true, group: "OGX" });
+    expect(emna).toMatchObject({ eligible: true, group: "OGTa" });
   });
 
   it("qualifies an OC member on the OC goals alone", () => {
-    const records = [...rec("Emna Riahi", "signups", 10), ...rec("Emna Riahi", "revenue", 1, "2026-10-01", 2000)];
+    const records = [...rec("Emna Riahi", "revenue", 1, "2026-10-01", 2000)];
     const emna = buildLeaderboard({ config, members, records, aliases: [] }).standings.find((s) => s.name === "Emna Riahi")!;
     expect(emna).toMatchObject({ eligible: true, group: "OC" });
   });

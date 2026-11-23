@@ -13,7 +13,7 @@ import { SelectField } from "./select-field";
 gsap.registerPlugin(useGSAP);
 
 const PAGE_SIZE = 12;
-const METRICS: Metric[] = ["signups", "approvals", "opens", "referrals", "revenue"];
+const ALL_METRICS: Metric[] = ["signups", "approvals", "opens", "referrals", "revenue"];
 const METRIC_HEAD: Record<Metric, string> = { signups: "Signups", approvals: "Approvals", opens: "Opens", referrals: "Referrals", revenue: "Revenue" };
 type Status = "all" | "qualified";
 
@@ -25,6 +25,11 @@ export function StandingsTable({ data }: { data: PublicLeaderboard }) {
   const [page, setPage] = useState(1);
 
   const departments = useMemo(() => [...new Set(data.drivers.map((d) => d.department))].sort(), [data.drivers]);
+  /** Only metrics some group actually sets a goal for: a column of dashes helps no one. */
+  const metrics = useMemo(() => {
+    const used = new Set(data.groups.flatMap((g) => ALL_METRICS.filter((m) => g[m] > 0)));
+    return ALL_METRICS.filter((m) => used.has(m));
+  }, [data.groups]);
   const q = normalizeSearch(query);
   const filtered = data.drivers.filter(
     (d) =>
@@ -123,7 +128,7 @@ export function StandingsTable({ data }: { data: PublicLeaderboard }) {
                 <tr>
                   <th scope="col" className="py-3 pr-2 pl-5 font-medium">Pos</th>
                   <th scope="col" className="py-3 pr-4 font-medium">Member</th>
-                  {METRICS.map((m) => (
+                  {metrics.map((m) => (
                     <th key={m} scope="col" className="px-3 py-3 text-right font-medium">
                       {METRIC_HEAD[m]}
                     </th>
@@ -140,7 +145,7 @@ export function StandingsTable({ data }: { data: PublicLeaderboard }) {
                     <td className="py-3 pr-4">
                       <MemberCell driver={d} />
                     </td>
-                    {METRICS.map((m) => (
+                    {metrics.map((m) => (
                       <td key={m} className="num px-3 py-3 text-right text-sm">
                         <MetricCell driver={d} metric={m} />
                       </td>
@@ -229,7 +234,7 @@ function MemberCell({ driver: d }: { driver: PublicDriver }) {
  */
 function goalsOf(d: PublicDriver): PublicDriver["progress"] {
   const all = [...d.progress, ...(d.alternate?.progress ?? [])];
-  return METRICS.flatMap((metric) => {
+  return ALL_METRICS.flatMap((metric) => {
     const entries = all.filter((p) => p.metric === metric);
     if (!entries.length) return [];
     return [entries.reduce((a, b) => (b.goal < a.goal ? b : a))];

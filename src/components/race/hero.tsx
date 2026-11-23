@@ -58,6 +58,16 @@ const RANK = [
 /** Who stands where, by how many steps are filled. P1 takes the middle as soon as there are three. */
 const ORDER_BY_COUNT = [[], [0], [1, 0], [1, 0, 2], [1, 0, 2, 3]];
 
+/**
+ * A step keeps the width it would have in a full podium — a quarter of the row, less the gaps —
+ * however many people have qualified, so two winners get two normal steps rather than two wide ones.
+ * The row is centred, so a short podium sits in the middle of the composition.
+ */
+const PODIUM_COLUMNS = (count: number) => ({
+  gridTemplateColumns: `repeat(${count}, calc((100% - 3 * 3%) / 4))`,
+  justifyContent: "center",
+});
+
 export function Hero({ data }: { data: PublicLeaderboard }) {
   const podium = useRef<HTMLDivElement>(null);
   /** Only members who have actually qualified take a step; an unearned place stays empty. */
@@ -101,7 +111,7 @@ export function Hero({ data }: { data: PublicLeaderboard }) {
             <>
               <div ref={podium} data-podium className="relative">
                 <Trophies container={podium} metals={METALS.slice(0, winners.length)} />
-                <ol className="grid items-end gap-[3%]" style={{ gridTemplateColumns: `repeat(${winners.length}, minmax(0, 1fr))` }}>
+                <ol className="grid items-end gap-[3%]" style={PODIUM_COLUMNS(winners.length)}>
                   {order.map((index) => (
                     <PodiumBlock key={index} index={index} driver={winners[index]} order={order} />
                   ))}
@@ -111,7 +121,7 @@ export function Hero({ data }: { data: PublicLeaderboard }) {
               <ul
                 data-prizes
                 className="mt-4 grid gap-[3%] text-center"
-                style={{ gridTemplateColumns: `repeat(${winners.length}, minmax(0, 1fr))` }}
+                style={PODIUM_COLUMNS(winners.length)}
                 aria-label="Rewards"
               >
                 {order.map((index) => (

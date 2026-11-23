@@ -7,20 +7,26 @@ export const IGNORE_KEYWORD = "IGNORE";
 
 /** Rules agreed on 2026-11-15. The Config tab is seeded with these and can then be edited. */
 export const DEFAULT_CONFIG: LeaderboardConfig = {
-  startDate: "2026-09-01",
+  startDate: "2026-11-22",
   points: { approval: 1, open: 1, referral: 1 },
   autoMatchThreshold: 0.9,
+  /*
+   * One group per department, each with its own approvals goal (agreed 2026-11-24).
+   * Signups and opens are set to 0 for now: only approvals are counted and shown.
+   */
   groups: [
-    { id: "OGX", signups: 30, approvals: 4, opens: 0, referrals: 0, revenue: 0 },
-    { id: "IGT", signups: 20, approvals: 4, opens: 2, referrals: 0, revenue: 0 },
-    { id: "IGV", signups: 20, approvals: 7, opens: 4, referrals: 0, revenue: 0 },
-    { id: "Back office", signups: 15, approvals: 0, opens: 0, referrals: 4, revenue: 0 },
-    { id: OC_GROUP, signups: 10, approvals: 0, opens: 0, referrals: 0, revenue: 2000 },
+    { id: "OGV", signups: 0, approvals: 6, opens: 0, referrals: 0, revenue: 0 },
+    { id: "IGV", signups: 0, approvals: 5, opens: 0, referrals: 0, revenue: 0 },
+    { id: "OGTa", signups: 0, approvals: 4, opens: 0, referrals: 0, revenue: 0 },
+    { id: "OGTe", signups: 0, approvals: 3, opens: 0, referrals: 0, revenue: 0 },
+    { id: "IGT", signups: 0, approvals: 2, opens: 0, referrals: 0, revenue: 0 },
+    { id: "Back office", signups: 0, approvals: 0, opens: 0, referrals: 4, revenue: 0 },
+    { id: OC_GROUP, signups: 0, approvals: 0, opens: 0, referrals: 0, revenue: 2000 },
   ],
   departmentGroups: {
-    OGTa: "OGX",
-    OGTe: "OGX",
-    OGV: "OGX",
+    OGTa: "OGTa",
+    OGTe: "OGTe",
+    OGV: "OGV",
     IGT: "IGT",
     IGV: "IGV",
     TM: "Back office",

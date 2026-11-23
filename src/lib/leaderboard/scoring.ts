@@ -62,7 +62,8 @@ export function evaluate(counts: Counts, goals: GroupGoals, points: LeaderboardC
     const value = counts[metric];
     progress.push({ metric, value, goal, ratio: goal > 0 ? value / goal : 0, met: value >= goal });
   };
-  add("signups", goals.signups);
+  // A goal of 0 is not a goal: it is left out entirely, so nothing shows "0/0" or counts as met.
+  if (goals.signups > 0) add("signups", goals.signups);
 
   let earned = 0;
   let needed = 0;
@@ -87,5 +88,6 @@ export function evaluate(counts: Counts, goals: GroupGoals, points: LeaderboardC
   const totalWeight = withGoal.reduce((sum, p) => sum + weightOf(p.metric), 0);
   const readiness = totalWeight ? weighted / totalWeight : 1;
 
-  return { eligible: progress.every((p) => p.met), progress, points: earned, score, readiness };
+  // A group with no goals at all can't be qualified for; otherwise everyone in it would pass on day one.
+  return { eligible: progress.length > 0 && progress.every((p) => p.met), progress, points: earned, score, readiness };
 }

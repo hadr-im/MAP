@@ -228,12 +228,10 @@ function Rules({ data }: { data: PublicLeaderboard }) {
           <h2 id="rules" className="wide text-[clamp(2.25rem,7vw,4.5rem)] leading-[0.9]">
             How to qualify
           </h2>
-          <p className="mt-6 max-w-[58ch] text-lg leading-relaxed text-chalk">Hit every goal your group sets and you&apos;re on the grid.</p>
+          <p className="mt-6 max-w-[58ch] text-lg leading-relaxed text-chalk">Reach your department&apos;s goal and you&apos;re on the grid.</p>
           <p className="mt-4 max-w-[58ch] leading-relaxed text-chalk-dim">
-            {samePoints
-              ? `Each approval, open and referral is worth ${p.approval} point${p.approval === 1 ? "" : "s"}`
-              : `An approval is worth ${p.approval} points, an open ${p.open} and a referral ${p.referral}`}
-            , and your score is your points divided by your goal. Signups earn nothing on their own; they open the gate. Counting starts {formatDay(data.startDate)}.
+            Every department sets its own target, so you are measured against your own team and no one else. Your score is what you have
+            against what you need, which is why someone can read over 100%. Counting starts {formatDay(data.startDate)}.
           </p>
         </div>
 
@@ -242,37 +240,29 @@ function Rules({ data }: { data: PublicLeaderboard }) {
             {data.groups.map((g) => {
               const depts = g.id === "OC" ? [] : [...(departmentsByGroup.get(g.id) ?? [])].sort();
               // every goal is shown the same way: the figure, then its unit
-              const others = (["approvals", "opens", "referrals", "revenue"] as const)
+              const goals = (["signups", "approvals", "opens", "referrals", "revenue"] as const)
                 .filter((m) => g[m] > 0)
                 .map((m) => ({ metric: m, value: formatNumber(g[m]), unit: g[m] === 1 ? METRIC_LABEL[m].one : METRIC_LABEL[m].many }));
+              if (!goals.length) return null;
               return (
-                <li className="grid gap-2 border-t border-kerb py-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1.15fr)] sm:items-baseline sm:gap-x-14" key={g.id}>
+                <li className="grid gap-2 border-t border-kerb py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] sm:items-baseline sm:gap-x-14" key={g.id}>
                   <div>
                     <h3 className="display text-xl leading-none">{g.id}</h3>
-                    <p className="mt-1.5 text-sm text-chalk-dim">{g.id === "OC" ? "OCs from any department, who can qualify on these goals or their own department's" : depts.join(", ")}</p>
+                    {g.id === "OC" ? (
+                      <p className="mt-1.5 text-sm text-chalk-dim">OCs from any department, who can qualify on this goal or their own department&apos;s</p>
+                    ) : depts.length && depts.join(", ") !== g.id ? (
+                      <p className="mt-1.5 text-sm text-chalk-dim">{depts.join(", ")}</p>
+                    ) : null}
                   </div>
 
-                  {/* one line of goals on a phone; on a wide screen they take their own grid columns */}
-                  <div className="flex flex-wrap items-baseline gap-x-8 gap-y-1 sm:contents">
-                    {/* the gate: the number people are actually checking for */}
-                    <p className="num text-chalk sm:text-right">
-                      <span className="text-2xl font-bold">{formatNumber(g.signups)}</span>
-                      <span className="ml-1.5 text-sm text-chalk-dim">signups</span>
-                    </p>
-
-                    {others.length ? (
-                      <ul className="flex flex-wrap gap-x-8 gap-y-1 sm:gap-x-10">
-                        {others.map((o) => (
-                          <li key={o.metric} className="num text-chalk">
-                            <span className="text-2xl font-bold">{o.value}</span>
-                            <span className="ml-1.5 text-sm text-chalk-dim">{o.unit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-chalk-dim">No other goal</p>
-                    )}
-                  </div>
+                  <ul className="flex flex-wrap gap-x-8 gap-y-1 sm:gap-x-10">
+                    {goals.map((goal) => (
+                      <li key={goal.metric} className="num text-chalk">
+                        <span className="text-2xl font-bold">{goal.value}</span>
+                        <span className="ml-1.5 text-sm text-chalk-dim">{goal.unit}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               );
             })}

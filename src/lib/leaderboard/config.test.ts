@@ -13,12 +13,12 @@ describe("Config tab", () => {
     const rows = configToRows(DEFAULT_CONFIG).rows;
     const startRow = rows.find((r) => r[0] === "Start date")!;
     startRow[1] = 46266; // a real date cell typed in Sheets = 2026-09-01
-    rows.find((r) => r[0] === "OGX")![2] = 5; // approvals goal 4 → 5
+    rows.find((r) => r[0] === "OGTa")![2] = 5; // approvals goal 4 → 5
     rows.find((r) => r[0] === "Points per open")![1] = "2";
     const { config, warnings } = parseConfigRows(rows);
     expect(warnings).toEqual([]);
     expect(config.startDate).toBe("2026-09-01");
-    expect(config.groups.find((g) => g.id === "OGX")!.approvals).toBe(5);
+    expect(config.groups.find((g) => g.id === "OGTa")!.approvals).toBe(5);
     expect(config.points.open).toBe(2);
   });
 
